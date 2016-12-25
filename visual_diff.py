@@ -26,14 +26,6 @@ def get_tokens(filename):
         # Ignore non-significant whitespace
         tokens = [tok for tok in tokens if tok.type not in
                   (token.NEWLINE, token.ENDMARKER, tokenize.NL)]
-        tok = tokens[0]
-        print(dir(tok))
-        print(tok.count)
-        print(tok.start)
-        print(tok.end)
-        print(tok.string)
-        print(tok.line)
-        print(tok.index)
         f.seek(0)
         lines = [line.rstrip() for line in f.readlines()]
 
