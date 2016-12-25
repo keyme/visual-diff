@@ -5,15 +5,15 @@ import PIL.ImageTk
 import tkinter as tk
 
 
-class _Context(tk.Label):
+class _Context(tk.Text):
     CONTEXT_COUNT = 3  # Lines to display before/after the current one
 
     def __init__(self, tk_parent, data, axis):
         height = 1 + 2 * self.CONTEXT_COUNT
         # TODO: Configurable width? (goes with configurable max line number?)
-        super().__init__(tk_parent, text="", width=88, height=height,
-                anchor="w", justify="left", relief=tk.RIDGE, borderwidth=5,
-                font="TkFixedFont")
+        # TODO: Is the font name really stringly typed? (Maybe yes)
+        super().__init__(tk_parent, width=88, height=height,
+                state=tk.DISABLED, font="TkFixedFont")
         # TODO: Use a NamedTuple?
         self._tokens, self._lines, self._line_numbers = data
         self.pack()
@@ -36,13 +36,17 @@ class _Context(tk.Label):
                            if 0 < i <= len(self._lines) else ""
                            for i in range(start, end))
         # TODO: Highlight the token of interest?
-        self.configure(text=text)
+        #self.configure(text=text)
+        self.configure(state=tk.NORMAL)
+        self.delete("1.0", tk.END)
+        self.insert(tk.INSERT, text)
+        self.configure(state=tk.DISABLED)
 
 
 class _Gui(tk.Frame):
     def __init__(self, matrix, data_a, data_b, root):
         super().__init__(root)
-        self.pack(fill="both", expand="true")
+        self.pack(fill=tk.BOTH, expand="true")
         # Store the image as a member variable to keep it from going out of
         # scope.
         # TODO: Deal with overly large matrices, likely by allowing panning and
