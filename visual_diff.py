@@ -34,9 +34,8 @@ def get_tokens(filename):
     token_array = numpy.array(
             [tok.type if tok.type in constant_types else tok.string
              for tok in tokens])
-    #lines = [tok.line.rstrip() for tok in tokens]
-    line_numbers = [tok.start[0] for tok in tokens]
-    return token_array, lines, line_numbers
+    boundaries = [(tok.start, tok.end) for tok in tokens]
+    return token_array, lines, boundaries
 
 
 data_a = get_tokens(args.filename_a)

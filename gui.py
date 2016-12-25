@@ -7,15 +7,19 @@ import tkinter as tk
 
 class _Context(tk.Text):
     CONTEXT_COUNT = 3  # Lines to display before/after the current one
+    # TODO: What about files with over 10,000 lines?
+    LINE_NUMBER_WIDTH = 5  # Number of characters to allocate for line numbers
 
     def __init__(self, tk_parent, data, axis):
         height = 1 + 2 * self.CONTEXT_COUNT
-        # TODO: Configurable width? (goes with configurable max line number?)
+        # TODO: Configurable width for files with long lines
+        width = 80 + 2 + self.LINE_NUMBER_WIDTH
         # TODO: Is the font name really stringly typed? (Maybe yes)
-        super().__init__(tk_parent, width=88, height=height,
+        super().__init__(tk_parent, width=width, height=height,
                 state=tk.DISABLED, font="TkFixedFont")
         # TODO: Use a NamedTuple?
-        self._tokens, self._lines, self._line_numbers = data
+        self._tokens, self._lines, self._boundaries = data
+        self._line_numbers = [boundary[0][0] for boundary in self._boundaries]
         self.pack()
         self._axis = axis
 
@@ -31,15 +35,23 @@ class _Context(tk.Text):
         end   = line_number + self.CONTEXT_COUNT + 1
         # Recall that line_number comes from the token module, which starts
         # counting at 1 instead of 0.
-        # TODO: What about line numbers in files with over 10,000 lines?
-        text = "\n".join("{:>5}:{}".format(i, self._lines[i - 1])
+        # TODO: Change the 5 to a LINE_NUMBER_WIDTH
+        text = "\n".join("{:>5}: {}".format(i, self._lines[i - 1])
                            if 0 < i <= len(self._lines) else ""
                            for i in range(start, end))
-        # TODO: Highlight the token of interest?
-        #self.configure(text=text)
+        # Update the displayed code
         self.configure(state=tk.NORMAL)
         self.delete("1.0", tk.END)
         self.insert(tk.INSERT, text)
+        # Highlight the token of interest.
+        (a1, a2), (b1, b2) = self._boundaries[pixel_index]
+        self.tag_add("token",
+                     "{}.{}".format(self.CONTEXT_COUNT + 1,
+                                    a2 + self.LINE_NUMBER_WIDTH + 2),
+                     "{}.{}".format(self.CONTEXT_COUNT + 1 + b1 - a1,
+                                    b2 + self.LINE_NUMBER_WIDTH + 2))
+        self.tag_config("token", background="yellow")
+        # Remember to disable editing again when we're done!
         self.configure(state=tk.DISABLED)
 
 
@@ -56,7 +68,7 @@ class _Gui(tk.Frame):
         self._map = tk.Label(self, image=self._image)
         self._map.pack()
         self._map.bind("<Motion>", self._on_motion)
-        self._map.bind("<Enter>", self._on_motion)
+        self._map.bind("<Enter>",  self._on_motion)
 
         # We're using (row, col) format, so the first one changes with Y.
         self._contexts = [_Context(self, data, axis)
