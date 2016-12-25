@@ -24,8 +24,9 @@ def get_tokens(filename):
     with open(filename) as f:
         tokens = tokenize.generate_tokens(f.readline)
         # Ignore non-significant whitespace
-        tokens = [tok for tok in tokens if tok.type not in
-                  (token.NEWLINE, token.ENDMARKER, tokenize.NL)]
+        ignore_types = [token.NEWLINE, token.ENDMARKER, tokenize.NL,
+                        tokenize.COMMENT]
+        tokens = [tok for tok in tokens if tok.type not in ignore_types]
         f.seek(0)
         lines = [line.rstrip() for line in f.readlines()]
 
