@@ -1,2 +1,18 @@
 I installed python-pil.imagetk through apt-get
 I installed python3-pil.imagetk through apt-get
+
+How to deal with resizing/zooming?
+0/4 : 0
+1/4 (on diagonal): 0?
+1/4 (off diagonal): 1 or 0.
+2/4 (diagonal): 1
+2/4 (backwards diagonal): 0?
+3/4: impossible
+4/4: 1
+
+
+1 2
+3 4
+
+success cases:
+2 | 1&4
