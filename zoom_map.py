@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 
+import numpy
 import PIL.Image
 import PIL.ImageTk
 
@@ -38,7 +39,8 @@ class ZoomMap:
             # To satisfy all these conditions, we should be set either if both
             # pixels on the diagonal are set or if 1 pixel off the diagonal is
             # set.
-            matrix = (quads[0] & quads[3]) | (quads[1] & not quads[2])
+            matrix = ((quads[0] & quads[3]) |
+                      (quads[1] & numpy.logical_not(quads[2])))
 
     @staticmethod
     def _to_image(matrix):
