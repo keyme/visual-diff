@@ -16,6 +16,9 @@ class ZoomMap:
             nr, nc = [(value // 2) * 2 for value in matrix.shape]
             quads = [matrix[row:nr:2, col:nc:2]
                      for row in [0, 1] for col in [0, 1]]
+            # TODO: Is there a standard way of resizing a binary image that
+            # keeps lines crisp while removing salt-and-pepper noise?
+
             # We want the following outcomes when combining a 2x2 square into a
             # single pixel:
             #   - If none of the 4 pixels is set, we should not be set.
@@ -47,9 +50,11 @@ class ZoomMap:
         image = PIL.Image.fromarray(matrix * 255)
         return PIL.ImageTk.PhotoImage(image)
 
+    @property
     def image(self):
         return self._pyramid[self._zoom_level]
 
+    @property
     def zoom_level(self):
         return 2 ** self._zoom_level
 

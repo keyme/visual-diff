@@ -18,10 +18,10 @@ class _Context(tk.Text):
     TEXT_WIDTH = 80
 
     def __init__(self, tk_parent, data, axis, zoom_map):
-        height = 1 + 2 * self.CONTEXT_COUNT
+        height = 2 * self.CONTEXT_COUNT + 1
         width = self.PRELUDE_WIDTH + self.TEXT_WIDTH
         super().__init__(tk_parent, width=width, height=height,
-                state=tk.DISABLED, font="TkFixedFont")
+                         state=tk.DISABLED, font="TkFixedFont")
         self.pack()
         # TODO: Use a NamedTuple?
         self._tokens, self._lines, self._boundaries = data
@@ -32,15 +32,17 @@ class _Context(tk.Text):
         # TODO: Check this whole thing for off-by-one errors.
         # The zoom level is equivalent to the number of tokens described by the
         # current pixel in the map.
-        zoom_level = self._zoom_map.zoom_level()
+        zoom_level = self._zoom_map.zoom_level
         begin_token_index = getattr(event, self._axis) * zoom_level
         end_token_index = min(begin_token_index + zoom_level,
                               len(self._boundaries)) - 1
         if not (0 <= begin_token_index < len(self._boundaries)):
-            # TODO: Should this ever happen?
+            # TODO: Should this ever happen? It does happen on the rightmost
+            # and bottommost edges of the image.
             print("Out of range; skipping!")
             return
         line_number = self._boundaries[begin_token_index][0][0]
+
         # Recall that line_number comes from the token module, which starts
         # counting at 1 instead of 0.
         start = line_number - self.CONTEXT_COUNT - 1
@@ -50,10 +52,12 @@ class _Context(tk.Text):
                  if 0 <= i < len(self._lines) else ""
                  for i in range(start, end)]
         text = "\n".join(lines)
+
         # Update the displayed code
         self.configure(state=tk.NORMAL)
         self.delete("1.0", tk.END)
         self.insert(tk.INSERT, text)
+
         # Highlight the tokens of interest.
         (ar, ac) = self._boundaries[begin_token_index][0]
         (br, bc) = self._boundaries[end_token_index][1]
@@ -63,12 +67,14 @@ class _Context(tk.Text):
                      "{}.{}".format(self.CONTEXT_COUNT + 1 + br - ar,
                                     bc + self.PRELUDE_WIDTH))
         self.tag_config("token", background="yellow")
+
         # ...but don't highlight the line numbers on multi-line tokens.
         for i in range(self.CONTEXT_COUNT):
             line = i + self.CONTEXT_COUNT + 2
             self.tag_remove("token",
                             "{}.{}".format(line, 0),
                             "{}.{}".format(line, self.PRELUDE_WIDTH))
+
         # Remember to disable editing again when we're done, so users can't
         # modify the code we're displaying!
         self.configure(state=tk.DISABLED)
@@ -79,7 +85,7 @@ class _Gui(tk.Frame):
         super().__init__(root)
         self.pack(fill=tk.BOTH, expand="true")
         self._zoom_map = ZoomMap(matrix)
-        self._map = tk.Label(self, image=self._zoom_map.image())
+        self._map = tk.Label(self, image=self._zoom_map.image)
         self._map.pack()
 
         # We're using (row, col) format, so the first one changes with Y.
@@ -100,7 +106,7 @@ class _Gui(tk.Frame):
         # TODO: when click-and-drag is implemented and the whole map is not
         # onscreen, make the zooming centered around the curser.
         self._zoom_map.zoom(amount)
-        self._map.configure(image=self._zoom_map.image())
+        self._map.configure(image=self._zoom_map.image)
 
     def _on_click(self, event):
         self._click_coords = [event.x, event.y]
